@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mail V — Почтовый клиент</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">Mail<span>V</span></div>
+
+      <div class="section-title">Папки</div>
+      <nav id="folder-list"></nav>
+
+      <div class="section-title">Ящики</div>
+      <div id="mailbox-list"></div>
+
+      <div class="sidebar-actions">
+        <button id="btn-add-mailbox" class="btn btn-primary" type="button">+ Добавить ящик</button>
+        <button id="btn-collect" class="btn btn-secondary" type="button">Собрать письма</button>
+        <button id="btn-organize" class="btn btn-secondary" type="button">Сортировать</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <form id="search-form" class="search-form">
+          <input
+            id="search-input"
+            type="search"
+            placeholder="Поиск: минимум 3 символа на слово (например: сче опл)"
+            autocomplete="off"
+          >
+          <button class="btn btn-primary" type="submit">Найти</button>
+        </form>
+        <span class="search-hint">по первым 3 символам</span>
+      </header>
+
+      <div class="content">
+        <div id="message-list" class="message-list"></div>
+        <article id="message-detail" class="message-detail empty">
+          <p>Выберите письмо</p>
+        </article>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" role="dialog" aria-labelledby="modal-title">
+      <h2 id="modal-title">Добавить IMAP-ящик</h2>
+      <form id="mailbox-form" class="form-grid">
+        <label>
+          Название
+          <input name="name" required placeholder="Gmail">
+        </label>
+        <label>
+          Email
+          <input name="email" type="email" required placeholder="user@gmail.com">
+        </label>
+        <div class="form-row">
+          <label>
+            IMAP-хост
+            <input name="imap_host" required placeholder="imap.gmail.com">
+          </label>
+          <label>
+            Порт
+            <input name="imap_port" type="number" value="993" required>
+          </label>
+        </div>
+        <label>
+          <input name="imap_ssl" type="checkbox" checked> Использовать SSL
+        </label>
+        <label>
+          Логин
+          <input name="username" required placeholder="user@gmail.com">
+        </label>
+        <label>
+          Пароль
+          <input name="password" type="password" required>
+        </label>
+        <label>
+          Папка
+          <input name="source_folder" value="INBOX" placeholder="INBOX">
+        </label>
+        <div class="modal-actions">
+          <button id="btn-close-modal" class="btn btn-secondary" type="button">Отмена</button>
+          <button class="btn btn-primary" type="submit">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
