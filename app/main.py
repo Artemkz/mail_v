@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from app.api.auth_routes import router as auth_router
 from app.api.routes import router as api_router
 from app.web.routes import router as web_router
 from app.config import settings
@@ -46,6 +47,7 @@ app = FastAPI(
 )
 
 app.include_router(web_router)
+app.include_router(auth_router)
 app.include_router(api_router)
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_username
 from app.database import get_db
 from app.models import Folder, MailboxAccount, Message
 from app.schemas.mail import (
@@ -20,7 +21,11 @@ from app.services.collector_service import collect_from_mailboxes
 from app.services.organizer_service import organize_by_sender
 from app.services.search_service import search_messages
 
-router = APIRouter(prefix="/api", tags=["mail"])
+router = APIRouter(
+  prefix="/api",
+  tags=["mail"],
+  dependencies=[Depends(get_current_username)],
+)
 
 
 @router.post("/mailboxes", response_model=MailboxResponse, status_code=201)

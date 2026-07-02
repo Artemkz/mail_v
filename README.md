@@ -4,6 +4,7 @@
 
 ## Возможности
 
+- **Авторизация** — вход по логину и паролю, защита API и веб-интерфейса
 - **Веб-интерфейс** — почтовый клиент в браузере на http://localhost:8000
 - **IMAP** — подключение внешних почтовых ящиков и загрузка писем
 - **Сборщик** — автоматический сбор с нескольких ящиков (фоновый процесс каждые 5 минут + ручной запуск)
@@ -25,7 +26,21 @@ python run.py
 ```
 
 API: http://localhost:8000/docs  
-Веб-интерфейс: http://localhost:8000
+Веб-интерфейс: http://localhost:8000  
+Логин по умолчанию: `admin` / `admin` (задаётся в `.env`)
+
+## Авторизация
+
+Скопируйте `.env.example` в `.env` и задайте:
+
+```env
+APP_USERNAME=admin
+APP_PASSWORD=your-secure-password
+SECRET_KEY=long-random-secret
+COOKIE_PATH=/mail
+```
+
+Для локального запуска используйте `COOKIE_PATH=/`.
 
 ## Примеры
 
@@ -72,3 +87,7 @@ curl http://localhost:8000/api/folders
 | `SEARCH_PREFIX_LENGTH` | 3 | Длина префикса для поиска |
 | `COLLECTOR_INTERVAL_SECONDS` | 300 | Интервал фонового сборщика |
 | `DATABASE_URL` | sqlite+aiosqlite:///./mail_client.db | URL базы данных |
+| `APP_USERNAME` | admin | Логин для входа |
+| `APP_PASSWORD` | admin | Пароль для входа |
+| `SECRET_KEY` | change-me-in-production | Секрет для JWT |
+| `COOKIE_PATH` | / | Путь cookie (на сервере: `/mail`) |

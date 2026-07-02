@@ -1,4 +1,5 @@
-const API = "/api";
+const BASE_PATH = window.location.pathname.replace(/\/$/, "") || "";
+const API = `${BASE_PATH}/api`;
 
 let state = {
   view: "all",
@@ -36,9 +37,14 @@ function showToast(text, type = "success") {
 
 async function api(path, options = {}) {
   const res = await fetch(`${API}${path}`, {
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options,
   });
+  if (res.status === 401) {
+    window.location.href = `${BASE_PATH}/login`;
+    throw new Error("Требуется авторизация");
+  }
   if (!res.ok) {
     let detail = res.statusText;
     try {
@@ -288,10 +294,30 @@ function bindEvents() {
     if (e.target.id === "modal-overlay") closeModal();
   });
   $("mailbox-form").addEventListener("submit", addMailbox);
+  const logoutBtn = $("btn-logout");
+  if (logoutBtn) logoutBtn.addEventListener("click", logout);
+}
+
+async function logout() {
+  try {
+    await fetch(`${API}/auth/logout`, { method: "POST", credentials: "include" });
+  } finally {
+    window.location.href = `${BASE_PATH}/login`;
+  }
+}
+
+async function ensureAuth() {
+  const res = await fetch(`${API}/auth/me`, { credentials: "include" });
+  if (!res.ok) {
+    window.location.href = `${BASE_PATH}/login`;
+    return false;
+  }
+  return true;
 }
 
 async function init() {
   bindEvents();
+  if (!(await ensureAuth())) return;
   try {
     await refreshAll();
   } catch (err) {
