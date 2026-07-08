@@ -75,3 +75,9 @@ class OrganizerResponse(BaseModel):
   folders_created: int
   messages_moved: int
   senders_processed: int
+
+
+class DeleteResponse(BaseModel):
+  deleted: bool
+  id: int
+  detail: str | None = None

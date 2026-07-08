@@ -1,7 +1,7 @@
 import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_username
@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models import Folder, MailboxAccount, Message
 from app.schemas.mail import (
   CollectResponse,
+  DeleteResponse,
   FolderResponse,
   MailboxCreate,
   MailboxResponse,
@@ -66,6 +67,33 @@ async def get_mailbox(
   return MailboxResponse.model_validate(mailbox)
 
 
+@router.delete("/mailboxes/{mailbox_id}", response_model=DeleteResponse)
+async def delete_mailbox(
+  mailbox_id: int,
+  db: AsyncSession = Depends(get_db),
+) -> DeleteResponse:
+  result = await db.execute(
+    select(MailboxAccount).where(MailboxAccount.id == mailbox_id)
+  )
+  mailbox = result.scalar_one_or_none()
+  if not mailbox:
+    raise HTTPException(status_code=404, detail="Ящик не найден")
+
+  messages_result = await db.execute(
+    delete(Message).where(Message.mailbox_id == mailbox_id)
+  )
+  deleted_messages = messages_result.rowcount
+
+  await db.delete(mailbox)
+  await db.commit()
+
+  return DeleteResponse(
+    deleted=True,
+    id=mailbox_id,
+    detail=f"Ящик удалён, писем удалено: {deleted_messages}",
+  )
+
+
 @router.post("/collect", response_model=CollectResponse)
 async def collect_mail(
   mailbox_id: int | None = Query(default=None, description="ID ящика или все активные"),
@@ -115,6 +143,34 @@ async def list_messages(
 
   result = await db.execute(stmt)
   return [MessageResponse.model_validate(m) for m in result.scalars().all()]
+
+
+@router.get("/messages/{message_id}", response_model=MessageResponse)
+async def get_message(
+  message_id: int,
+  db: AsyncSession = Depends(get_db),
+) -> MessageResponse:
+  result = await db.execute(select(Message).where(Message.id == message_id))
+  message = result.scalar_one_or_none()
+  if not message:
+    raise HTTPException(status_code=404, detail="Письмо не найдено")
+  return MessageResponse.model_validate(message)
+
+
+@router.delete("/messages/{message_id}", response_model=DeleteResponse)
+async def delete_message(
+  message_id: int,
+  db: AsyncSession = Depends(get_db),
+) -> DeleteResponse:
+  result = await db.execute(select(Message).where(Message.id == message_id))
+  message = result.scalar_one_or_none()
+  if not message:
+    raise HTTPException(status_code=404, detail="Письмо не найдено")
+
+  await db.delete(message)
+  await db.commit()
+
+  return DeleteResponse(deleted=True, id=message_id, detail="Письмо удалено")
 
 
 @router.get("/folders", response_model=list[FolderResponse])

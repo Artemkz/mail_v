@@ -133,6 +133,27 @@ body {
   background: var(--border);
 }
 
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.btn-danger:hover {
+  background: rgba(240, 113, 120, 0.15);
+}
+
+.btn-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.btn-icon {
+  padding: 0.35rem 0.5rem;
+  min-width: auto;
+  line-height: 1;
+}
+
 .main {
   display: flex;
   flex-direction: column;
@@ -373,11 +394,49 @@ body {
   padding: 0.65rem 0.75rem;
   font-size: 0.82rem;
   margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mailbox-card-body {
+  min-width: 0;
+  flex: 1;
 }
 
 .mailbox-card strong {
   display: block;
   margin-bottom: 0.15rem;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.message-item-wrap {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+}
+
+.message-item-wrap .message-item {
+  border-bottom: none;
+  flex: 1;
+}
+
+.message-delete-btn {
+  flex-shrink: 0;
+  align-self: center;
+  margin-right: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.message-item-wrap:hover .message-delete-btn {
+  opacity: 1;
 }
 
 .hidden {

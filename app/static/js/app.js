@@ -86,7 +86,17 @@ function renderMailboxes() {
   state.mailboxes.forEach((mb) => {
     const card = document.createElement("div");
     card.className = "mailbox-card";
-    card.innerHTML = `<strong>${escapeHtml(mb.name)}</strong><span>${escapeHtml(mb.email)}</span>`;
+    card.innerHTML = `
+      <div class="mailbox-card-body">
+        <strong>${escapeHtml(mb.name)}</strong>
+        <span>${escapeHtml(mb.email)}</span>
+      </div>
+      <button class="btn btn-danger btn-sm" type="button" title="Удалить ящик">✕</button>
+    `;
+    card.querySelector("button").onclick = (e) => {
+      e.stopPropagation();
+      deleteMailbox(mb.id, mb.email);
+    };
     list.appendChild(card);
   });
 }
@@ -102,6 +112,9 @@ function renderMessages() {
   }
 
   state.messages.forEach((msg) => {
+    const wrap = document.createElement("div");
+    wrap.className = "message-item-wrap";
+
     const btn = document.createElement("button");
     btn.className = `message-item${state.selectedId === msg.id ? " active" : ""}`;
     btn.innerHTML = `
@@ -111,7 +124,20 @@ function renderMessages() {
       <div class="date">${formatDate(msg.received_at)}</div>
     `;
     btn.onclick = () => selectMessage(msg.id);
-    list.appendChild(btn);
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn btn-danger btn-sm btn-icon message-delete-btn";
+    delBtn.type = "button";
+    delBtn.title = "Удалить";
+    delBtn.textContent = "✕";
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      deleteMessage(msg.id);
+    };
+
+    wrap.appendChild(btn);
+    wrap.appendChild(delBtn);
+    list.appendChild(wrap);
   });
 
   if (!state.selectedId && state.messages[0]) {
@@ -129,6 +155,9 @@ function renderDetail(message) {
 
   panel.className = "message-detail";
   panel.innerHTML = `
+    <div class="detail-actions">
+      <button id="btn-delete-message" class="btn btn-danger btn-sm" type="button">Удалить письмо</button>
+    </div>
     <div class="detail-header">
       <h1>${escapeHtml(message.subject || "(без темы)")}</h1>
     </div>
@@ -138,6 +167,7 @@ function renderDetail(message) {
     </div>
     <div class="detail-body">${escapeHtml(message.body_text || "")}</div>
   `;
+  $("btn-delete-message").onclick = () => deleteMessage(message.id);
 }
 
 function escapeHtml(text) {
@@ -267,6 +297,37 @@ async function addMailbox(event) {
     showToast("Ящик добавлен");
     closeModal();
     await loadMailboxes();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+async function deleteMailbox(id, email) {
+  if (!confirm(`Удалить ящик ${email}?\nВсе письма этого ящика в приложении будут удалены.`)) {
+    return;
+  }
+  try {
+    const result = await api(`/mailboxes/${id}`, { method: "DELETE" });
+    showToast(result.detail || "Ящик удалён");
+    await refreshAll();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+async function deleteMessage(id) {
+  if (!confirm("Удалить это письмо?")) {
+    return;
+  }
+  try {
+    await api(`/messages/${id}`, { method: "DELETE" });
+    showToast("Письмо удалено");
+    state.messages = state.messages.filter((m) => m.id !== id);
+    if (state.selectedId === id) {
+      state.selectedId = null;
+    }
+    renderFolders();
+    renderMessages();
   } catch (err) {
     showToast(err.message, "error");
   }
