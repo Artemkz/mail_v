@@ -70,6 +70,13 @@ smtpd_tls_security_level = may
 smtp_tls_security_level = may
 smtpd_tls_auth_only = yes
 
+# SMTP authentication via Dovecot
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+broken_sasl_auth_clients = yes
+
 # SASL / restrictions
 smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authenticated, defer_unauth_destination
 smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
