@@ -16,6 +16,7 @@ class FetchedMessage:
   subject: str
   body_text: str
   received_at: datetime
+  raw_rfc822: bytes
 
 
 def _decode_mime_header(value: str | None) -> str:
@@ -138,10 +139,47 @@ class ImapClient:
           subject=_decode_mime_header(msg.get("Subject")),
           body_text=_extract_body(msg),
           received_at=_parse_received_at(msg),
+          raw_rfc822=raw_email,
         )
       )
 
     return result
+
+  def append_message(self, folder: str, raw_rfc822: bytes) -> str:
+    if self._connection is None:
+      raise RuntimeError("IMAP-соединение не установлено")
+
+    status, _ = self._connection.select(folder, readonly=False)
+    if status != "OK":
+      raise RuntimeError(f"Не удалось открыть папку {folder}")
+
+    status, data = self._connection.append(folder, None, None, raw_rfc822)
+    if status != "OK":
+      raise RuntimeError("Не удалось добавить письмо в ящик")
+
+    if data and data[0]:
+      response = data[0].decode() if isinstance(data[0], bytes) else str(data[0])
+      match = re.search(r"APPENDUID \d+ (\d+)", response)
+      if match:
+        return match.group(1)
+
+    return ""
+
+  def delete_message(self, folder: str, imap_uid: str) -> None:
+    if self._connection is None:
+      raise RuntimeError("IMAP-соединение не установлено")
+
+    status, _ = self._connection.select(folder, readonly=False)
+    if status != "OK":
+      raise RuntimeError(f"Не удалось открыть папку {folder}")
+
+    status, _ = self._connection.uid("STORE", imap_uid, "+FLAGS", "(\\Deleted)")
+    if status != "OK":
+      raise RuntimeError(f"Не удалось пометить письмо UID {imap_uid} на удаление")
+
+    status, _ = self._connection.expunge()
+    if status != "OK":
+      raise RuntimeError("Не удалось окончательно удалить письмо на сервере")
 
 
 def sanitize_folder_name(sender_email: str) -> str:

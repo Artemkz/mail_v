@@ -11,16 +11,26 @@
     <aside class="sidebar">
       <div class="logo">Mail<span>V</span></div>
 
-      <div class="section-title">Папки</div>
-      <nav id="folder-list"></nav>
+      <div class="sidebar-main">
+        <div class="section-title">Папки</div>
+        <nav id="folder-list"></nav>
+      </div>
 
-      <div class="section-title">Ящики</div>
-      <div id="mailbox-list"></div>
-
-      <div class="sidebar-actions">
-        <button id="btn-add-mailbox" class="btn btn-primary" type="button">+ Добавить ящик</button>
-        <button id="btn-collect" class="btn btn-secondary" type="button">Собрать письма</button>
-        <button id="btn-organize" class="btn btn-secondary" type="button">Сортировать</button>
+      <div class="sidebar-footer">
+        <button id="btn-settings" class="btn btn-secondary settings-toggle" type="button" aria-expanded="false">
+          <span>⚙ Настройки</span>
+          <span id="settings-badge" class="badge hidden"></span>
+        </button>
+        <div id="settings-panel" class="settings-panel hidden">
+          <div class="section-title">Ящики</div>
+          <div id="mailbox-list"></div>
+          <div class="settings-actions">
+            <button id="btn-add-mailbox" class="btn btn-primary" type="button">+ Добавить ящик</button>
+            <button id="btn-collect" class="btn btn-secondary" type="button">Собрать письма</button>
+            <button id="btn-consolidate" class="btn btn-secondary" type="button" title="Скопировать письма со всех ящиков в один">В один ящик</button>
+            <button id="btn-organize" class="btn btn-secondary" type="button">Сортировать</button>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -40,7 +50,26 @@
       </header>
 
       <div class="content">
-        <div id="message-list" class="message-list"></div>
+        <div class="messages-pane">
+          <div class="message-toolbar">
+            <label class="toolbar-check">
+              <input id="select-all" type="checkbox">
+              <span>Все</span>
+            </label>
+            <div id="bulk-actions" class="bulk-actions hidden">
+              <button id="bulk-read" class="btn btn-secondary btn-sm" type="button">Прочитано</button>
+              <button id="bulk-unread" class="btn btn-secondary btn-sm" type="button">Непрочитано</button>
+              <button id="bulk-star" class="btn btn-secondary btn-sm" type="button">★</button>
+              <button id="bulk-archive" class="btn btn-secondary btn-sm" type="button">В архив</button>
+              <select id="bulk-move-folder" class="toolbar-select">
+                <option value="">Переместить...</option>
+              </select>
+              <button id="bulk-delete" class="btn btn-danger btn-sm" type="button">Удалить</button>
+            </div>
+            <button id="btn-mark-all-read" class="btn btn-secondary btn-sm" type="button">Прочитать все</button>
+          </div>
+          <div id="message-list" class="message-list"></div>
+        </div>
         <article id="message-detail" class="message-detail empty">
           <p>Выберите письмо</p>
         </article>
@@ -74,12 +103,16 @@
           <input name="imap_ssl" type="checkbox" checked> Использовать SSL
         </label>
         <label>
+          <input name="is_active" type="checkbox" checked> Ящик активен (участвует в сборе)
+        </label>
+        <label>
           Логин
           <input name="username" required placeholder="user@gmail.com">
         </label>
         <label>
           Пароль
-          <input name="password" type="password" required>
+          <input name="password" type="password" placeholder="Пароль IMAP">
+          <span id="password-hint" class="field-hint hidden">Оставьте пустым, чтобы не менять пароль</span>
         </label>
         <label>
           Папка

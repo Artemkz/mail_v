@@ -19,6 +19,7 @@ class MailboxAccount(Base):
   password: Mapped[str] = mapped_column(String(255))
   source_folder: Mapped[str] = mapped_column(String(255), default="INBOX")
   is_active: Mapped[bool] = mapped_column(default=True)
+  is_consolidation_target: Mapped[bool] = mapped_column(default=False)
   created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
   messages: Mapped[list["Message"]] = relationship(back_populates="mailbox")
@@ -55,8 +56,26 @@ class Message(Base):
   subject: Mapped[str] = mapped_column(String(1024), default="")
   body_text: Mapped[str] = mapped_column(Text, default="")
   search_text: Mapped[str] = mapped_column(Text, default="", index=True)
+  is_read: Mapped[bool] = mapped_column(default=False)
+  is_starred: Mapped[bool] = mapped_column(default=False)
+  is_archived: Mapped[bool] = mapped_column(default=False)
   received_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
   created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
   mailbox: Mapped["MailboxAccount"] = relationship(back_populates="messages")
   folder: Mapped["Folder | None"] = relationship(back_populates="messages")
+
+
+class ConsolidationRecord(Base):
+  __tablename__ = "consolidation_records"
+  __table_args__ = (
+    UniqueConstraint("source_mailbox_id", "source_imap_uid", name="uq_consolidation_source"),
+  )
+
+  id: Mapped[int] = mapped_column(Integer, primary_key=True)
+  source_mailbox_id: Mapped[int] = mapped_column(ForeignKey("mailbox_accounts.id"))
+  source_imap_uid: Mapped[str] = mapped_column(String(64))
+  destination_mailbox_id: Mapped[int] = mapped_column(ForeignKey("mailbox_accounts.id"))
+  destination_imap_uid: Mapped[str | None] = mapped_column(String(64), nullable=True)
+  message_id: Mapped[str | None] = mapped_column(String(512), nullable=True)
+  created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
