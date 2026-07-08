@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class MailboxCreate(BaseModel):
@@ -12,6 +12,19 @@ class MailboxCreate(BaseModel):
   username: str
   password: str
   source_folder: str = "INBOX"
+
+  @field_validator("imap_host")
+  @classmethod
+  def normalize_imap_host(cls, value: str) -> str:
+    return value.split(":", 1)[0].strip()
+
+  @field_validator("source_folder")
+  @classmethod
+  def normalize_source_folder(cls, value: str) -> str:
+    folder = value.strip() or "INBOX"
+    if "@" in folder:
+      return "INBOX"
+    return folder
 
 
 class MailboxResponse(BaseModel):
